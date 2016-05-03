@@ -1,5 +1,4 @@
 #!/bin/bash
-
 FULLPATH="`pwd`/$0"
 DIR=`dirname "$FULLPATH"`
 
@@ -28,9 +27,19 @@ checkAvail()
 #========================================================================
 compile()
 {
-	echo "compiling"
-	echo "========="
+	echo "compiling java"
+	echo "=============="
 	$JAVAC -classpath "$build" -sourcepath "$src" -d "$build" "$src"/*.java
+}
+
+
+#========================================================================
+compile_c()
+{
+	echo "compiling c"
+	echo "==========="
+	cc -o "$build"/imgframe_t "$src"/imgframe_t.c -Wunknown-pragmas
+	"$build"/imgframe_t 0 0 0 0 0 0 > imgframe_t_null_header.dump
 }
 
 #========================================================================
@@ -38,9 +47,7 @@ build_jar()
 {
 	echo "creating jar"
 	echo "============"
-
 	cur="`pwd`"
-
 	mkdir -p "$build"/jarbuild
 	rm -rf "$build"/jarbuild/*
 	cp "$build"/*.class "$build"/jarbuild
@@ -51,20 +58,15 @@ Main-Class: PixelPipeGUI
 _EOF_
 
 	cd "$build"/jarbuild
-
 	jar cfm PixelPipeGUI_$NOW.jar Manifest.txt *.class
-
 	mv PixelPipeGUI_$NOW.jar "$build"
-
 	echo "build_jar done."
-
 	echo "java -jar "$build"/PixelPipeGUI_$NOW.jar <shm uuid>"
-
 	cd "$cur"
 #	java -jar "$build"/PixelPipeGUI_$NOW.jar /dev/shm/`ls -1tr /dev/shm/ |tail -1`
 }
 
-for tool in java javac jar javadoc; \
+for tool in java javac jar javadoc cc; \
 	do checkAvail "$tool"; done
 
 mkdir -p "$build"
@@ -72,5 +74,6 @@ rm -rf "$build"/*
 
 compile
 build_jar
+compile_c
 
 echo "done."
