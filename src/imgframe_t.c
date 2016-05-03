@@ -58,7 +58,7 @@ static imgframe_t *imgframe_new(int size, int w, int h, int channel_count, int b
 		(unsigned long long)(tv.tv_sec) * 1000 +
 		(unsigned long long)(tv.tv_usec) / 1000;
 
-	printf("%" PRId64 "\n", img->millis_since_epoch);
+//	fprintf(stderr,"%" PRId64 "\n", img->millis_since_epoch);
 	return img;
 }
 
