@@ -100,8 +100,8 @@ public class RBPixelPipe extends Thread
 			}
 			if(rb.can_read()>=img_header.frameheader_size+img_header.frame_size)
 			{
-				///need rb.skip method
-				rb.generic_read(img_header.frameheaderbuf,img_header.frameheader_size,0);
+				///rb.generic_read(img_header.frameheaderbuf,img_header.frameheader_size,0);
+				rb.generic_advance_read_index(img_header.frameheader_size,0);
 
 				byte[] pixelbuf=new byte[img_header.frame_size];
 
