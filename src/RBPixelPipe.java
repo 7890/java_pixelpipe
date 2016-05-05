@@ -16,6 +16,8 @@ public class RBPixelPipe extends Thread
 
 	private boolean is_paused=false;
 	private boolean frame_available=false;
+	private boolean frame_requested=false;
+	private boolean drop_all_requested=false;
 
 //=============================================================================
 	public RBPixelPipe(String shm_uuid) throws Exception
@@ -52,6 +54,15 @@ public class RBPixelPipe extends Thread
 	public void next()
 	{
 		frame_available=false;
+		frame_requested=true;
+	}
+
+//=============================================================================
+	public void dropAll()
+	{
+		frame_available=false;
+		frame_requested=true;
+		drop_all_requested=true;
 	}
 
 //=============================================================================
@@ -83,7 +94,33 @@ public class RBPixelPipe extends Thread
 	{
 	while(true)
 	{
-		if(is_paused)
+		if(drop_all_requested)
+		{
+			while(rb.can_read()>=img_header.frameheader_size)
+			{
+				///peeking / parsing just img_header.frame_size would be enough to skip
+				long count=rb.peek(img_header.frameheaderbuf,img_header.frameheader_size);
+				if(!img_header.parse())
+				{
+					e("could not parse image header");
+					try{Thread.sleep(1);}catch(Exception e){}
+					continue;
+				}
+				if(rb.can_read()>=img_header.frameheader_size+img_header.frame_size)
+				{
+					//skip
+					rb.generic_advance_read_index(img_header.frameheader_size+img_header.frame_size,0);
+				}
+				else//at latest frame (have header but no data)
+				{
+					break;
+				}
+			}//either break or data in ringbuffer < img_header size
+			drop_all_requested=false;
+			continue;
+		}
+
+		if(is_paused && !frame_requested)
 		{
 			try{Thread.sleep(10);}catch(Exception e){}
 			continue;
@@ -141,6 +178,7 @@ public class RBPixelPipe extends Thread
 					{
 						try{Thread.sleep(1);}catch(Exception e){}
 					}
+					frame_requested=false;
 				}
 			}//end rb.can_read()>=frameheader_size+img_header.frame_size 
 		}//end rb.can_read()>=img_header.frameheader_size

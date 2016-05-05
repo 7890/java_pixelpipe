@@ -259,6 +259,19 @@ public class PixelPipeGUI
 					l_paused.setVisible(is_paused);
 					pp.setPaused(is_paused);
 				}
+				else if(e.getKeyChar()=='.')
+				{
+					System.out.println("next frame");
+					if(is_paused)
+					{
+						pp.next();
+					}
+				}
+				else if(e.getKeyChar()=='d')
+				{
+					System.out.println("drop frames");
+					pp.dropAll();
+				}
 				else if(e.getKeyChar()=='n')
 				{
 					System.out.println("normal size");
