@@ -30,6 +30,8 @@ public class PixelPipeGUI
 	public int 	fontsize_overlay 		=42;
 	public int 	fontsize_values 		=20;
 	public String 	snapshot_save_dir		="./";
+	public int 	cols 				=3;
+	public int 	rows 				=2;
 	//===end configurable parameters
 
 	private RBPixelPipe pp;
@@ -37,7 +39,7 @@ public class PixelPipeGUI
 
 	private JFrame main_frame;
 
-	private ImagePanel ip;
+	private ImagePanel ip[];
 	private BufferedImage bi;
 
 	private BufferFillPanel panel_buffer_fill;
@@ -57,6 +59,8 @@ public class PixelPipeGUI
 
 	private JLabel l_paused;
 	private boolean is_paused=false;
+
+	private int ip_index=0;
 
 //=============================================================================
 	public static void main(String[] args) throws Exception
@@ -101,8 +105,10 @@ public class PixelPipeGUI
 			{
 				img_header=pp.getFrameHeader();
 				bi=pp.getFrame();
-				ip.setImage(bi);
-				ip.repaint();
+				ip[ip_index].setImage(bi);
+				ip[ip_index].repaint();
+				ip_index++;
+				ip_index%=cols*rows;
 				pp.next();
 			}
 			if(panel_glass.isVisible() || is_paused)
@@ -158,9 +164,14 @@ public class PixelPipeGUI
 	private void setupGUI()
 	{
 		main_frame=new JFrame();
-		ip=new ImagePanel();
-		ip.setInitialDimension(new Dimension(initial_width,initial_height));
-		main_frame.add(ip);
+		main_frame.setLayout(new GridLayout(rows,cols));
+		ip=new ImagePanel[cols*rows];
+		for(int i=0;i<cols*rows;i++)
+		{
+			ip[i]=new ImagePanel();
+			ip[i].setInitialDimension(new Dimension((int)(initial_width/cols),(int)(initial_height/rows)));
+			main_frame.add(ip[i]);
+		}
 		main_frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		main_frame.setSize(initial_width,initial_height);
 		main_frame.setTitle(window_title);
