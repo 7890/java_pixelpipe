@@ -32,11 +32,14 @@ public class PixelPipeGUI
 	public String 	snapshot_save_dir		="./";
 	public int 	cols 				=3;
 	public int 	rows 				=2;
+	public boolean 	fixed_playout_rate 		=false;
+	public float 	fps 				=30;
+	public String 	shm_prefix 			="/dev/shm";
 	//===end configurable parameters
 
 	private RBPixelPipe pp;
 	private ImgFrameHeader img_header;
-
+	private FPSThread fps_thread;
 	private JFrame main_frame;
 
 	private ImagePanel ip[];
@@ -88,10 +91,17 @@ public class PixelPipeGUI
 		img_header=new ImgFrameHeader();
 		try
 		{
-			e("attaching ringbuffer "+args[0]);
-			pp=new RBPixelPipe(args[0]);
+			e("attaching ringbuffer "+shm_prefix+"/"+args[0]);
+			pp=new RBPixelPipe(shm_prefix+"/"+args[0]);
 			e("starting pixelpipe read thread");
 			pp.start();
+
+			fps_thread=new FPSThread(this);
+			fps_thread.setFPS(fps);
+			if(fixed_playout_rate)
+			{
+				fps_thread.start();
+			}
 		}
 		catch(Exception e)
 		{
@@ -101,30 +111,40 @@ public class PixelPipeGUI
 
 		while(1==1)
 		{
-			if(pp.available())
+			if(!fixed_playout_rate)
 			{
-				img_header=pp.getFrameHeader();
-				bi=pp.getFrame();
-				ip[ip_index].setImage(bi);
-				ip[ip_index].repaint();
-				ip_index++;
-				ip_index%=cols*rows;
-				pp.next();
-			}
-			if(panel_glass.isVisible() || is_paused)
-			{
-				updateInfoPanel();
-				panel_buffer_fill.setValue(pp.getBufferFillLevel());
-				panel_buffer_fill.repaint();
-				if(is_paused)
-				{
-					try{Thread.sleep(10);}catch(Exception e){}
-				}
+				next();
 			}
 			try{Thread.sleep(1);}catch(Exception e){}
 		}
 	}//end constructor PixelPipeGUI
 
+//========================================================================
+	public void next()
+	{
+		System.err.print("-");
+		if(pp.available())
+		{
+			System.err.print("+");
+			img_header=pp.getFrameHeader();
+			bi=pp.getFrame();
+			ip[ip_index].setImage(bi);
+			ip[ip_index].repaint();
+			ip_index++;
+			ip_index%=cols*rows;
+			pp.next();
+		}
+		if(panel_glass.isVisible() || is_paused)
+		{
+			updateInfoPanel();
+			panel_buffer_fill.setValue(pp.getBufferFillLevel());
+			panel_buffer_fill.repaint();
+			if(is_paused)
+			{
+				try{Thread.sleep(10);}catch(Exception e){}
+			}
+		}
+	}
 //========================================================================
 	public boolean loadProps(String configfile_uri)
 	{
