@@ -32,6 +32,7 @@ public class PixelPipeGUI
 	public String 	snapshot_save_dir		="./";
 	public int 	cols 				=3;
 	public int 	rows 				=2;
+	public int 	tiles 				=0;//cols*rows if every tile is used
 	public boolean 	fixed_playout_rate 		=false;
 	public float 	fps 				=30;
 	public String 	shm_prefix 			="/dev/shm";
@@ -85,6 +86,12 @@ public class PixelPipeGUI
 			e("could not load properties");
 		}
 
+		//limit
+		if(tiles==0 || tiles>cols*rows)
+		{
+			tiles=cols*rows;
+		}
+
 		DTime.setTimeZoneUTC();
 		setupGUI();
 
@@ -131,7 +138,8 @@ public class PixelPipeGUI
 			ip[ip_index].setImage(bi);
 			ip[ip_index].repaint();
 			ip_index++;
-			ip_index%=cols*rows;
+			//ip_index%=cols*rows;
+			ip_index%=tiles;
 			pp.next();
 		}
 		if(panel_glass.isVisible() || is_paused)
