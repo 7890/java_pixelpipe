@@ -1,5 +1,7 @@
 import java.awt.image.*;
-
+import java.io.InputStream;
+import java.io.ByteArrayInputStream;
+import javax.imageio.ImageIO;
 //tb/1604
 
 //test read image frames from ringbuffer
@@ -167,6 +169,15 @@ public class RBPixelPipe extends Thread
 						bi=ImgConv._8bitRGBToBuffered(pixelbuf,img_header.w,img_header.h);
 					}
 					else{}///
+				}
+				else if(img_header.channel_count==0) //&& ..==0 //null header
+				{
+					//try to load image with header
+					try
+					{
+						InputStream pixelstream = new ByteArrayInputStream(pixelbuf);
+						bi=ImageIO.read(pixelstream);
+					}catch(Exception e){e.printStackTrace();}
 				}
 				else{}///
 
